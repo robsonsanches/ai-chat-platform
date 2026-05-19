@@ -1,0 +1,70 @@
+# --- Arquivos de ambiente ---
+.env
+.env.local
+.env.*.local
+.env.backup
+
+# --- IDE e Editores ---
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+.DS_Store
+Thumbs.db
+*.sublime-project
+*.sublime-workspace
+
+# --- Logs ---
+*.log
+logs/
+!logs/nginx/
+!logs/nginx/api/
+!logs/nginx/api/.gitkeep
+**/logs/
+
+# --- Dados persistentes ---
+data/mysql/
+
+# --- Backend (Laravel) ---
+api/*.log
+api/.DS_Store
+api/.env
+api/.env.backup
+api/.env.production
+api/.phpactor.json
+api/.phpunit.result.cache
+api/.codex
+api/.cursor/
+api/.idea
+api/.nova
+api/.phpunit.cache
+api/.vscode
+api/.zed
+api/auth.json
+api/node_modules
+api/public/build
+api/public/hot
+api/public/storage
+api/storage/*.key
+api/storage/pail
+api/vendor
+api/_ide_helper.php
+api/Homestead.json
+api/Homestead.yaml
+api/Thumbs.db
+
+
+# --- Docker ---
+docker-compose.override.yml
+
+# --- Arquivos temporários ---
+*.pid
+*.sock
+*.tmp
+*.lock
+
+# --- Configuração sensível ---
+*.key
+*.crt
+*.pem
