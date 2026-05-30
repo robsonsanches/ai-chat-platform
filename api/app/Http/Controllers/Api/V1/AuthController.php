@@ -2,84 +2,69 @@
 
 namespace App\Http\Controllers\Api\V1;
 
-use App\Http\Controllers\Controller;
-use App\Models\User;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Validation\ValidationException;
+use App\Http\Controllers\Controller;
 use App\Http\Resources\UserResource;
+use App\Services\AuthService;
+use App\Traits\ApiResponse;
 
 class AuthController extends Controller
 {
+    use ApiResponse;
+
+    public function __construct(
+        protected AuthService $authService
+    ) {}
+
     public function register(Request $request)
     {
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
-            'email' => ['required', 'email', 'unique:users'],
-            'password' => ['required', 'min:6'],
+            'email' => ['required', 'email:rfc,dns', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'string', 'min:6'],
+            'device_name' => ['string', 'max:255'],
         ]);
 
-        $user = User::create([
-            'name' => $data['name'],
-            'email' => $data['email'],
-            'password' => Hash::make($data['password']),
-        ]);
+        $result = $this->authService->register($data, $request);
 
-        $token = $user->createToken('api')->plainTextToken;
-
-        return response()->json([
-            'data' => [
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => new UserResource($user),
-            ]
-        ], 201);
+        return $this->success([
+            ...$result,
+            'user' => new UserResource($result['user']),
+        ], 'Usuário registrado com sucesso', 201);
     }
 
     public function login(Request $request)
     {
         $data = $request->validate([
             'email' => ['required', 'email'],
-            'password' => ['required'],
+            'password' => ['required', 'string'],
+            'device_name' => ['string', 'max:255'],
+            'remember' => ['sometimes', 'boolean'],
         ]);
 
-        $user = User::where('email', $data['email'])->first();
+        $result = $this->authService->login($data, $request);
 
-        if (! $user || ! Hash::check($data['password'], $user->password)) {
-            throw ValidationException::withMessages([
-                'email' => ['Credenciais inválidas'],
-            ]);
-        }
-
-        // opcional: invalidar tokens antigos
-        $user->tokens()->delete();
-
-        $token = $user->createToken('api')->plainTextToken;
-
-        return response()->json([
-            'data' => [
-                'access_token' => $token,
-                'token_type' => 'Bearer',
-                'user' => new UserResource($user),
-            ]
-        ]);
+        return $this->success([
+            ...$result,
+            'user' => new UserResource($result['user']),
+        ], 'Login realizado com sucesso');
     }
 
     public function me(Request $request)
     {
-        return response()->json([
-            'data' => new UserResource($request->user())
-        ]);
+        return $this->success(
+            new UserResource($request->user()),
+            'Usuário autenticado'
+        );
     }
 
     public function logout(Request $request)
     {
-        $request->user()->currentAccessToken()->delete();
+        $this->authService->logout($request->user());
 
-        return response()->json([
-            'data' => [
-                'message' => 'Logout realizado com sucesso'
-            ]
-        ]);
+        return $this->success(
+            null,
+            'Logout realizado com sucesso'
+        );
     }
 }
