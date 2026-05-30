@@ -13,11 +13,11 @@ services:
       - ./api:/var/www/api
       - ./docker/api:/var/www/api/docker
     environment:
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_DATABASE: ${MYSQL_DATABASE}
-      DB_USERNAME: ${MYSQL_USER}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_HOST: mysql
+      MYSQL_PORT: 3306
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
       APP_NAME: ${APP_NAME}
       APP_ENV: ${APP_ENV}
       APP_DEBUG: ${APP_DEBUG}
