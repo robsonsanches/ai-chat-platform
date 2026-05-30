@@ -67,4 +67,24 @@ class AuthController extends Controller
             'Logout realizado com sucesso'
         );
     }
+
+    public function logoutAll(Request $request)
+    {
+        $this->authService->logoutAll($request->user());
+
+        return $this->success(
+            null,
+            'Logout em todos dispositivos'
+        );
+    }
+
+    public function refresh(Request $request)
+    {
+        $result = $this->authService->refresh($request->user());
+
+        return $this->success(
+            $result,
+            'Token renovado com sucesso'
+        );
+    }
 }

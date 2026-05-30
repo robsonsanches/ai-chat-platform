@@ -48,6 +48,45 @@ class AuthService
         $user->currentAccessToken()?->delete();
     }
 
+    public function logoutAll(User $user): void
+    {
+        $user->tokens()->delete();
+    }
+
+    public function refresh(User $user): array
+    {
+        $currentToken = $user->currentAccessToken();
+
+        if (! $currentToken) {
+            throw ValidationException::withMessages([
+                'token' => ['Token inválido'],
+            ]);
+        }
+
+        $deviceName = $currentToken->name;
+        $abilities = $currentToken->abilities;
+
+        $expiresAt = $currentToken->expires_at
+            ? now()->addSeconds(
+                now()->diffInSeconds($currentToken->expires_at, false)
+            )
+            : now()->addHours(6);
+
+        $newToken = $user->createToken(
+            $deviceName,
+            $abilities,
+            $expiresAt
+        );
+
+        $currentToken->delete();
+
+        return [
+            'access_token' => $newToken->plainTextToken,
+            'expires_at' => $expiresAt->toISOString(),
+            'expires_in' => now()->diffInSeconds($expiresAt),
+        ];
+    }
+
     private function generateToken(User $user, Request $request): array
     {
         $deviceName = $request->input('device_name')
