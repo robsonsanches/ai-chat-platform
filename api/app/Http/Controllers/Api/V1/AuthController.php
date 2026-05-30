@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Validation\ValidationException;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
@@ -24,9 +25,14 @@ class AuthController extends Controller
             'password' => Hash::make($data['password']),
         ]);
 
+        $token = $user->createToken('api')->plainTextToken;
+
         return response()->json([
-            'token' => $user->createToken('api')->plainTextToken,
-            'user' => $user,
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => new UserResource($user),
+            ]
         ], 201);
     }
 
@@ -45,17 +51,25 @@ class AuthController extends Controller
             ]);
         }
 
+        // opcional: invalidar tokens antigos
         $user->tokens()->delete();
 
+        $token = $user->createToken('api')->plainTextToken;
+
         return response()->json([
-            'token' => $user->createToken('api')->plainTextToken,
-            'user' => $user,
+            'data' => [
+                'access_token' => $token,
+                'token_type' => 'Bearer',
+                'user' => new UserResource($user),
+            ]
         ]);
     }
 
     public function me(Request $request)
     {
-        return response()->json($request->user());
+        return response()->json([
+            'data' => new UserResource($request->user())
+        ]);
     }
 
     public function logout(Request $request)
@@ -63,7 +77,9 @@ class AuthController extends Controller
         $request->user()->currentAccessToken()->delete();
 
         return response()->json([
-            'message' => 'Logout realizado com sucesso',
+            'data' => [
+                'message' => 'Logout realizado com sucesso'
+            ]
         ]);
     }
 }
