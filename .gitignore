@@ -25,6 +25,7 @@ logs/
 
 # --- Dados persistentes ---
 data/mysql/
+api/ai_chat_db
 
 # --- Backend (Laravel) ---
 api/*.log
