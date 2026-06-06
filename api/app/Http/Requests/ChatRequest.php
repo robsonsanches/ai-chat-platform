@@ -24,7 +24,7 @@ class ChatRequest extends FormRequest
     {
         return [
             'message' => ['required', 'string'],
-            'conversation_id' => ['nullable', 'integer'],
+            'conversation_id' => ['nullable', 'string'],
         ];
     }
 }

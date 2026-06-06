@@ -16,16 +16,18 @@ class ChatService
 
     public function sendMessage(
         string $message,
-        ?int $conversationId = null
+        ?string $conversationId = null
     ): array {
 
         $agent = new ChatAgent();
 
         if ($conversationId) {
-            $agent->continue((string) $conversationId, (object) ['id' => $conversationId]);
+            $agent->continue((string) $conversationId, (object) $this->user);
+        } else {
+            $agent->forUser($this->user);
         }
 
-        $response = $agent->forUser($this->user)->prompt($message);
+        $response = $agent->prompt($message);
 
         return [
             'conversation_id' => $response->conversationId,
