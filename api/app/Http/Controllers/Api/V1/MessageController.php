@@ -3,20 +3,20 @@
 namespace App\Http\Controllers\Api\V1;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\ChatRequest;
-use App\Services\ChatService;
+use App\Http\Requests\MessageRequest;
+use App\Services\MessageService;
 
-class ChatController extends Controller
+class MessageController extends Controller
 {
     public function __construct(
-        protected ChatService $chatService
+        protected MessageService $messageService
     ) {
     }
 
-    public function store(ChatRequest $request)
+    public function store(MessageRequest $request)
     {
-        $result = $this->chatService->sendMessage(
-            message: $request->message,
+        $result = $this->messageService->send(
+            content: $request->content,
             conversationId: $request->conversation_id
         );
 
@@ -25,4 +25,5 @@ class ChatController extends Controller
             'Mensagem enviada com sucesso'
         );
     }
+
 }

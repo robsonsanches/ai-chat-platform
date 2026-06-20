@@ -5,7 +5,7 @@ namespace App\Services;
 use App\Ai\Agents\ChatAgent;
 use App\Models\User;
 
-class ChatService
+class MessageService
 {
     protected ?User $user;
 
@@ -14,8 +14,8 @@ class ChatService
         $this->user = $user ?? auth()->user();
     }
 
-    public function sendMessage(
-        string $message,
+    public function send(
+        string $content,
         ?string $conversationId = null
     ): array {
 
@@ -27,11 +27,12 @@ class ChatService
             $agent->forUser($this->user);
         }
 
-        $response = $agent->prompt($message);
+        $response = $agent->prompt($content);
 
         return [
             'conversation_id' => $response->conversationId,
             'response' => $response->text,
         ];
     }
+
 }

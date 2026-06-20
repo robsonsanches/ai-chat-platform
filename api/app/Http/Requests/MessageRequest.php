@@ -5,7 +5,7 @@ namespace App\Http\Requests;
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class ChatRequest extends FormRequest
+class MessageRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -23,7 +23,7 @@ class ChatRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'message' => ['required', 'string'],
+            'content' => ['required', 'string'],
             'conversation_id' => ['nullable', 'string'],
         ];
     }

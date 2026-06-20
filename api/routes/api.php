@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\ChatController;
+use App\Http\Controllers\Api\V1\MessageController;
 
 Route::prefix('v1')->group(function () {
 
@@ -23,7 +23,8 @@ Route::prefix('v1')->group(function () {
             Route::post('/logout-all', [AuthController::class, 'logoutAll']);
         });
 
-        Route::post('/chat', [ChatController::class, 'store']);
-
+        Route::prefix('messages')->group(function () {
+            Route::post('/', [MessageController::class, 'store']);
+        });
     });
 });
