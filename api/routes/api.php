@@ -3,7 +3,7 @@
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\Api\V1\AuthController;
-use App\Http\Controllers\Api\V1\MessageController;
+use App\Http\Controllers\Api\V1\ConversationController;
 
 Route::prefix('v1')->group(function () {
 
@@ -23,8 +23,13 @@ Route::prefix('v1')->group(function () {
             Route::post('/logout-all', [AuthController::class, 'logoutAll']);
         });
 
-        Route::prefix('messages')->group(function () {
-            Route::post('/', [MessageController::class, 'store']);
+        Route::prefix('conversations')->group(function () {
+            Route::get('/{conversationId}/messages', [ConversationController::class, 'messages']);
+            Route::get('/{id}', [ConversationController::class, 'show']);
+            Route::patch('/{id}', [ConversationController::class, 'update']);
+            Route::delete('/{id}', [ConversationController::class, 'destroy']);
+            Route::post('/', [ConversationController::class, 'store']);
+            Route::get('/', [ConversationController::class, 'index']);
         });
     });
 });
