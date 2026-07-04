@@ -84,4 +84,20 @@ class AuthController extends Controller
             'Token renovado com sucesso'
         );
     }
+
+    public function updateProfile(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['sometimes', 'string', 'max:255'],
+            'email' => ['sometimes', 'email:rfc,dns', 'max:255', 'unique:users,email,' . $request->user()->id],
+            'password' => ['sometimes', 'string', 'min:6'],
+        ]);
+
+        $user = $this->authService->updateUserProfile($request->user(), $data);
+
+        return $this->success(
+            new UserResource($user),
+            'Perfil atualizado com sucesso'
+        );
+    }
 }
