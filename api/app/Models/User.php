@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
 use Laravel\Sanctum\HasApiTokens;
 use Laravel\Ai\Concerns\HasConversations;
 
-#[Fillable(['uid','name', 'email', 'password'])]
+#[Fillable(['uuid','name', 'email', 'password'])]
 #[Hidden(['id','password', 'remember_token'])]
 class User extends Authenticatable
 {
@@ -36,15 +36,15 @@ class User extends Authenticatable
     protected static function booted()
     {
         static::creating(function ($model) {
-            if (!$model->uid) {
-                $model->uid = (string) Str::ulid();
+            if (!$model->uuid) {
+                $model->uuid = (string) Str::uuid();
             }
         });
     }
 
     public function getRouteKeyName()
     {
-        return 'uid';
+        return 'uuid';
     }
 
 }
