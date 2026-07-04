@@ -111,4 +111,16 @@ class AuthService
             'expires_in' => now()->diffInSeconds($expiresAt),
         ];
     }
+
+    public function updateUserProfile(User $user, array $data): User
+    {
+        if (isset($data['password'])) {
+            $data['password'] = Hash::make($data['password']);
+        }
+
+        $user->update($data);
+
+        return $user->refresh();
+    }
+
 }
