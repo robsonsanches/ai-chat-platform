@@ -6,18 +6,28 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\StoreConversationRequest;
 use App\Http\Requests\UpdateConversationRequest;
 use App\Contracts\ConversationServiceInterface;
+use App\Contracts\ConversationMessageServiceInterface;
+use Illuminate\Support\Facades\Auth;
 
 class ConversationController extends Controller
 {
     public function __construct(
-        protected ConversationServiceInterface $conversationService
+        protected ConversationServiceInterface $conversationService,
+        protected ConversationMessageServiceInterface $conversationMessageService
     ) {
     }
 
     public function index()
     {
         $perPage = request()->query('per_page', 15);
-        $conversations = $this->conversationService->listConversations($perPage);
+        $orderBy = request()->query('order_by', 'id');
+        $order = request()->query('order', 'asc');
+
+        $conversations = $this->conversationService->listConversations(
+            $perPage,
+            $orderBy,
+            $order
+        );
 
         if (!$conversations) {
             return $this->error('Conversas não encontradas', 404);
@@ -31,11 +41,18 @@ class ConversationController extends Controller
 
     public function store(StoreConversationRequest $request)
     {
-        $result = $this->conversationService->processConversation(
-            $request->input('message.content'),
-            $request->input('conversation_id'),
-            $request->input('title')
+        $result = $this->conversationMessageService->send(
+            content: $request->input('message.content'),
+            conversationId: $request->input('conversation_id'),
+            user: Auth::user(),
         );
+
+        if ($request->input('title')) {
+            $this->conversationService->updateConversationTitle(
+                $result['conversation_id'],
+                $request->input('title')
+            );
+        }
 
         if (!$result) {
             return $this->error('Erro ao processar a conversa', 500);
@@ -90,7 +107,15 @@ class ConversationController extends Controller
     public function messages(string $conversationId)
     {
         $perPage = request()->query('per_page', 15);
-        $messages = $this->conversationService->listMessages($conversationId, $perPage);
+        $orderBy = request()->query('order_by', 'id');
+        $order = request()->query('order', 'asc');
+
+        $messages = $this->conversationMessageService->listMessages(
+            $conversationId, 
+            $perPage, 
+            $orderBy, 
+            $order
+        );
 
         if (!$messages) {
             return $this->error('Mensagens não encontradas', 404);

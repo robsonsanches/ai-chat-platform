@@ -4,56 +4,61 @@ namespace App\Services;
 
 use App\Models\User;
 use App\Models\Conversation;
-use App\Ai\Agents\ChatAgent;
 use App\Contracts\ConversationServiceInterface;
+use App\Contracts\ConversationMessageServiceInterface;
 use Illuminate\Support\Facades\Auth;
-use Laravel\Ai\Contracts\ConversationStore;
 
 class ConversationService implements ConversationServiceInterface
 {
     protected Conversation $conversation;
-    protected ConversationStore $store;
-    protected ChatAgent $agent;
+    protected ConversationMessageServiceInterface $conversationMessageService;
 
-    public function __construct()
-    {
-        $this->conversation = resolve(Conversation::class);
-        $this->store = resolve(ConversationStore::class);
-        $this->agent = new ChatAgent();
+    public function __construct(
+        ?Conversation $conversation = null,
+        ?ConversationMessageServiceInterface $conversationMessageService = null
+    ) {
+        $this->conversation = $conversation ?? resolve(Conversation::class);
+        $this->conversationMessageService = $conversationMessageService ?? resolve(ConversationMessageServiceInterface::class);
     }
 
     public function processConversation(
-        string $messageContent, 
-        ?string $conversationId = null, 
-        ?string $title = null, 
+        string $messageContent,
+        ?string $conversationId = null,
+        ?string $title = null,
         ?User $user = null
-    ): ?array
-    {
+    ): ?array {
         $user = $user ?? Auth::user();
 
-        if ($conversationId) {
-            $this->agent->continue((string) $conversationId, (object) $user);
-        } else {
-            $this->agent->forUser($user);
-        }
+        $response = $this->conversationMessageService->send(
+            content: $messageContent,
+            conversationId: $conversationId,
+            user: $user,
+        );
 
-        if (!$response = $this->agent->prompt($messageContent)) {
+        if (!$response) {
             return null;
         }
 
         if ($title) {
-            $this->updateConversationTitle($response->conversationId, $title);
+            $this->updateConversationTitle($response['conversation_id'], $title);
         }
 
-        return [
-            'conversation_id' => $response->conversationId,
-            'message' => $this->store->getLatestConversationMessages($response->conversationId, 1)?->first(),
-        ];
+        return $response;
     }
 
-    public function listConversations(int $perPage = 15)
+    public function listConversations(int $perPage = 15, string $orderBy = 'id', string $orderDirection = 'asc')
     {
-        return $this->conversation->paginate($perPage);
+        $allowedSorts = ['id', 'title'];
+        $allowedDirections = ['asc', 'desc'];
+
+        $orderBy = in_array($orderBy, $allowedSorts, true) ? $orderBy : 'id';
+        $orderDirection = in_array(strtolower($orderDirection), $allowedDirections, true)
+            ? strtolower($orderDirection)
+            : 'asc';
+
+        return $this->conversation
+            ->orderBy($orderBy, $orderDirection)
+            ->paginate($perPage);
     }
 
     public function findConversationById(string $id)
@@ -87,8 +92,4 @@ class ConversationService implements ConversationServiceInterface
         return $conversation->delete();
     }
 
-    public function listMessages(string $conversationId, int $perPage = 15)
-    {
-        return $this->store->getLatestConversationMessages($conversationId, $perPage);
-    }
 }

@@ -14,13 +14,11 @@ interface ConversationServiceInterface
         ?User $user = null
     ): ?array;
 
-    public function listConversations(int $perPage = 15);
+    public function listConversations(int $perPage = 15, string $orderBy = 'id', string $orderDirection = 'asc');
 
     public function findConversationById(string $id);
 
     public function updateConversationTitle(string $id, string $title): ?Conversation;
 
     public function deleteConversation(string $id): bool;
-
-    public function listMessages(string $conversationId, int $perPage = 15);
 }
