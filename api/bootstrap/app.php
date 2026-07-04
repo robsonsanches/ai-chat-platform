@@ -12,6 +12,7 @@ use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 
+use App\Exceptions\ApiException;
 use App\Http\Middleware\ForceJsonResponse;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -43,6 +44,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 'code' => 'UNAUTHENTICATED',
                 'message' => 'Não autenticado',
             ], 401);
+        });
+
+        $exceptions->render(function (ApiException $e, $request) {
+            return response()->json([
+                'status' => 'error',
+                'code' => $e->getErrorCode(),
+                'message' => $e->getMessage(),
+                'errors' => $e->getErrors(),
+            ], $e->getStatusCode());
         });
 
         $exceptions->render(function (AuthorizationException $e, $request) {
