@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Ai\Agents\ChatAgent;
+use App\Exceptions\ConversationProcessingException;
 use App\Models\User;
 use App\Models\ConversationMessage;
 use App\Contracts\ConversationMessageServiceInterface;
@@ -39,9 +40,13 @@ class ConversationMessageService implements ConversationMessageServiceInterface
 
         $response = $this->agent->prompt($content);
 
+        if (!$response || !isset($response->conversationId)) {
+            throw new ConversationProcessingException();
+        }
+
         return [
             'conversation_id' => $response->conversationId,
-            'message' => $this->getLatestMessage($response->conversationId),
+            'message' => $this->getLatestMessage($response->conversationId)
         ];
     }
 
@@ -61,10 +66,11 @@ class ConversationMessageService implements ConversationMessageServiceInterface
             ->paginate($perPage);
     }
 
-    public function getLatestMessage(string $conversationId)
+    public function getLatestMessage(string $conversationId, $role = 'assistant'): ?ConversationMessage
     {
-        return $this->conversationMessage
+        return (new $this->conversationMessage)
             ->where('conversation_id', $conversationId)
+            ->where('role', $role)
             ->latest()
             ->first();
     }

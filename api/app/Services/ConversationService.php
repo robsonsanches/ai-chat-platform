@@ -6,6 +6,7 @@ use App\Models\User;
 use App\Models\Conversation;
 use App\Contracts\ConversationServiceInterface;
 use App\Contracts\ConversationMessageServiceInterface;
+use App\Exceptions\ConversationNotFoundException;
 use Illuminate\Support\Facades\Auth;
 
 class ConversationService implements ConversationServiceInterface
@@ -26,7 +27,7 @@ class ConversationService implements ConversationServiceInterface
         ?string $conversationId = null,
         ?string $title = null,
         ?User $user = null
-    ): ?array {
+    ): array {
         $user = $user ?? Auth::user();
 
         $response = $this->conversationMessageService->send(
@@ -34,10 +35,6 @@ class ConversationService implements ConversationServiceInterface
             conversationId: $conversationId,
             user: $user,
         );
-
-        if (!$response) {
-            return null;
-        }
 
         if ($title) {
             $this->updateConversationTitle($response['conversation_id'], $title);
@@ -61,17 +58,23 @@ class ConversationService implements ConversationServiceInterface
             ->paginate($perPage);
     }
 
-    public function findConversationById(string $id)
-    {
-        return $this->conversation->find($id);
-    }
-
-    public function updateConversationTitle(string $id, string $title): ?Conversation
+    public function findConversationById(string $id): Conversation
     {
         $conversation = $this->conversation->find($id);
 
         if (!$conversation) {
-            return null;
+            throw new ConversationNotFoundException();
+        }
+
+        return $conversation;
+    }
+
+    public function updateConversationTitle(string $id, string $title): Conversation
+    {
+        $conversation = $this->conversation->find($id);
+
+        if (!$conversation) {
+            throw new ConversationNotFoundException();
         }
 
         $conversation->update([
@@ -86,7 +89,7 @@ class ConversationService implements ConversationServiceInterface
         $conversation = $this->conversation->find($id);
 
         if (!$conversation) {
-            return false;
+            throw new ConversationNotFoundException();
         }
 
         return $conversation->delete();

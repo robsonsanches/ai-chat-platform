@@ -7,7 +7,9 @@ use App\Http\Requests\StoreConversationRequest;
 use App\Http\Requests\UpdateConversationRequest;
 use App\Contracts\ConversationServiceInterface;
 use App\Contracts\ConversationMessageServiceInterface;
+use App\Exceptions\ApiException;
 use Illuminate\Support\Facades\Auth;
+use Throwable;
 
 class ConversationController extends Controller
 {
@@ -17,114 +19,124 @@ class ConversationController extends Controller
     ) {
     }
 
-    public function index()
+    protected function handleServiceException(Throwable $exception)
     {
-        $perPage = request()->query('per_page', 15);
-        $orderBy = request()->query('order_by', 'id');
-        $order = request()->query('order', 'asc');
-
-        $conversations = $this->conversationService->listConversations(
-            $perPage,
-            $orderBy,
-            $order
-        );
-
-        if (!$conversations) {
-            return $this->error('Conversas não encontradas', 404);
+        if ($exception instanceof ApiException) {
+            return $this->error(
+                message: $exception->getMessage(),
+                statusCode: $exception->getStatusCode(),
+                errors: $exception->getErrors(),
+                code: $exception->getErrorCode()
+            );
         }
 
-        return $this->success(
-            $conversations,
-            'Conversas encontradas com sucesso'
-        );
+        return $this->error('Erro interno do servidor', 500, null, 'SERVER_ERROR');
+    }
+
+    public function index()
+    {
+        try {
+            $perPage = request()->query('per_page', 15);
+            $orderBy = request()->query('order_by', 'id');
+            $order = request()->query('order', 'asc');
+
+            $conversations = $this->conversationService->listConversations(
+                $perPage,
+                $orderBy,
+                $order
+            );
+
+            return $this->success(
+                $conversations,
+                'Conversas encontradas com sucesso'
+            );
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
+        }
     }
 
     public function store(StoreConversationRequest $request)
     {
-        $result = $this->conversationMessageService->send(
-            content: $request->input('message.content'),
-            conversationId: $request->input('conversation_id'),
-            user: Auth::user(),
-        );
-
-        if ($request->input('title')) {
-            $this->conversationService->updateConversationTitle(
-                $result['conversation_id'],
-                $request->input('title')
+        try {
+            $result = $this->conversationService->processConversation(
+                messageContent: $request->input('message.content'),
+                conversationId: $request->input('conversation_id'),
+                title: $request->input('title'),
+                user: Auth::user(),
             );
-        }
 
-        if (!$result) {
-            return $this->error('Erro ao processar a conversa', 500);
+            return $this->success(
+                $result,
+                'Conversa processada com sucesso'
+            );
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
         }
-
-        return $this->success(
-            $result,
-            'Conversa processada com sucesso'
-        );
     }
 
     public function show(string $id)
     {
-        $conversation = $this->conversationService->findConversationById($id);
+        try {
+            $conversation = $this->conversationService->findConversationById($id);
 
-        if (!$conversation) {
-            return $this->error('Conversa não encontrada', 404);
+            return $this->success(
+                $conversation,
+                'Conversa encontrada com sucesso'
+            );
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
         }
-
-        return $this->success(
-            $conversation,
-            'Conversa encontrada com sucesso'
-        );
     }
 
     public function update(UpdateConversationRequest $request, string $id)
     {
-        $conversation = $this->conversationService->updateConversationTitle(
-            $id,
-            $request->input('title')
-        );
+        try {
+            $conversation = $this->conversationService->updateConversationTitle(
+                $id,
+                $request->input('title')
+            );
 
-        if (!$conversation) {
-            return $this->error('Conversa não encontrada', 404);
+            return $this->success(
+                $conversation,
+                'Conversa atualizada com sucesso'
+            );
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
         }
-
-        return $this->success(
-            $conversation,
-            'Conversa atualizada com sucesso'
-        );
     }
 
     public function destroy(string $id)
     {
-        if (!$this->conversationService->deleteConversation($id)) {
-            return $this->error('Conversa não encontrada', 404);
-        }
+        try {
+            $this->conversationService->deleteConversation($id);
 
-        return $this->success(null, 'Conversa deletada com sucesso');
+            return $this->success(null, 'Conversa deletada com sucesso');
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
+        }
     }
 
     public function messages(string $conversationId)
     {
-        $perPage = request()->query('per_page', 15);
-        $orderBy = request()->query('order_by', 'id');
-        $order = request()->query('order', 'asc');
+        try {
+            $perPage = request()->query('per_page', 15);
+            $orderBy = request()->query('order_by', 'id');
+            $order = request()->query('order', 'asc');
 
-        $messages = $this->conversationMessageService->listMessages(
-            $conversationId, 
-            $perPage, 
-            $orderBy, 
-            $order
-        );
+            $messages = $this->conversationMessageService->listMessages(
+                $conversationId,
+                $perPage,
+                $orderBy,
+                $order
+            );
 
-        if (!$messages) {
-            return $this->error('Mensagens não encontradas', 404);
+            return $this->success(
+                $messages,
+                'Mensagens encontradas com sucesso'
+            );
+        } catch (Throwable $exception) {
+            return $this->handleServiceException($exception);
         }
-
-        return $this->success(
-            $messages,
-            'Mensagens encontradas com sucesso'
-        );
     }
 
 }

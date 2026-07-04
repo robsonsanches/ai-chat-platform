@@ -8,17 +8,17 @@ use App\Models\Conversation;
 interface ConversationServiceInterface
 {
     public function processConversation(
-        string $messageContent, 
-        ?string $conversationId = null, 
-        ?string $title = null, 
+        string $messageContent,
+        ?string $conversationId = null,
+        ?string $title = null,
         ?User $user = null
-    ): ?array;
+    ): array;
 
     public function listConversations(int $perPage = 15, string $orderBy = 'id', string $orderDirection = 'asc');
 
-    public function findConversationById(string $id);
+    public function findConversationById(string $id): Conversation;
 
-    public function updateConversationTitle(string $id, string $title): ?Conversation;
+    public function updateConversationTitle(string $id, string $title): Conversation;
 
     public function deleteConversation(string $id): bool;
 }
