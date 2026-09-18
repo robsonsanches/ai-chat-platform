@@ -1,177 +1,138 @@
 # AI Chat Platform
 
-Modern AI chat platform built with **Laravel 13**, designed for creating conversational AI applications with support for local and cloud LLMs.
+AI chat platform with a Laravel API and a Vue frontend. The backend uses the
+[Laravel AI SDK](https://laravel.com/docs/ai) for conversational agents,
+conversation persistence, and integrations with supported AI providers.
 
----
+## Stack
 
-## 📂 Project Structure
+- **Laravel 13** and **PHP 8.3+** - API backend
+- **Laravel AI SDK** (`laravel/ai`) - AI agents and conversations
+- **Laravel Sanctum** - token-based authentication
+- **Vue 3** and **Vite** - frontend
+- **MySQL 8** - application database
+- **Docker Compose** - local development environment
+- **Nginx** - API web server
 
-```bash
+## Features
+
+- User registration, login, profile management, and token revocation
+- Authenticated AI conversations
+- Conversation history and message pagination
+- Conversation ownership: users only receive their own conversations
+- Support for Laravel AI SDK providers configured in the application
+
+## Project structure
+
+```text
 ai-chat-platform/
-├── api/                          # Backend - Laravel API
-│   ├── app/
-│   ├── bootstrap/
-│   ├── config/
-│   ├── database/
-│   ├── public/
-│   ├── resources/
-│   ├── routes/
-│   ├── storage/
-│   ├── tests/
-│   ├── .env
-│   ├── composer.json
-│   └── ...
-├── docker/
-│   ├── api/
-│   │   ├── Dockerfile           # PHP-FPM for Laravel
-│   │   ├── docker-entrypoint.sh
-│   │   └── default.conf         # Nginx configuration
-│   └── mysql/
-├── data/
-│   └── mysql/                   # Persistent MySQL data
-├── logs/
-│   └── api/
-├── .env                         # Root environment variables
-├── env.example
-├── docker-compose.yml
-└── README.md
+├── api/                  # Laravel API
+├── web/                  # Vue/Vite frontend
+├── docker/               # API and MySQL Docker configuration
+├── data/mysql/           # Persistent MySQL data
+├── env.example           # Docker Compose environment template
+└── docker-compose.yml
 ```
 
----
-
-## 🛠️ Technologies Used
-
-### Backend
-- **Laravel 13** - PHP framework for API development
-- **Laravel Sanctum** - Authentication for SPA and API
-- **LLPhant** - AI orchestration and LLM integration
-- **MySQL 8.0** - Relational database
-
-### Infrastructure
-- **Docker & Docker Compose** - Containerization and orchestration
-- **Nginx** - Web server and reverse proxy
-
----
-
-## ✨ Features
-
-- AI chat conversations
-- Conversation history management
-- Support for local LLMs with Ollama
-- Integration-ready for OpenAI and compatible APIs
-- RESTful API architecture
-- Token-based authentication
-- Dockerized development environment
-- Scalable backend structure
-
----
-
-## 📋 Prerequisites
+## Requirements
 
 - [Docker](https://docs.docker.com/get-docker/)
 - [Docker Compose](https://docs.docker.com/compose/)
 
----
+The Docker setup provides PHP, Node.js, MySQL, Nginx, and phpMyAdmin. No local
+PHP, Composer, or Node.js installation is required to run the stack.
 
-## 🚀 How to Run
+## Configuration and startup
 
-### 1. Configure environment variables
+1. Create the root environment file:
 
-Create a `.env` file in the project root based on `env.example`:
+   ```bash
+   cp env.example .env
+   ```
 
-```bash
-cp env.example .env
-```
+2. Set the database credentials and at least one AI provider key in `.env`.
+   The available provider variables include `GEMINI_API_KEY`,
+   `OPENAI_API_KEY`, `ANTHROPIC_API_KEY`, `OLLAMA_API_KEY`, and the other
+   providers supported by the Laravel AI SDK configuration.
 
-Edit the `.env` file with your environment settings.
+3. Start the containers:
 
----
+   ```bash
+   docker compose up -d --build
+   ```
 
-### 2. Start the containers
+4. Install backend dependencies, generate the application key, and run the
+   migrations:
 
-```bash
-docker compose up -d
-```
+   ```bash
+   docker compose exec api composer install
+   docker compose exec api php artisan key:generate
+   docker compose exec api php artisan migrate
+   ```
 
----
+The API is available at `http://localhost:8000` and the Vite frontend at
+`http://localhost:5173`. phpMyAdmin is available at
+`http://localhost:8081`.
 
-### 3. Configure the Laravel API
+## Laravel AI SDK
 
-```bash
-# Install backend dependencies
-docker compose exec api composer install
+AI behavior is implemented with Laravel AI SDK contracts and concerns. The
+application's chat agent is located at
+[`api/app/Ai/Agents/ChatAgent.php`](./api/app/Ai/Agents/ChatAgent.php).
+Provider credentials and the default provider are configured in
+[`api/config/ai.php`](./api/config/ai.php).
 
-# Generate application key
-docker compose exec api php artisan key:generate
+Cloud providers require their corresponding
+API key in the root `.env` file.
 
-# Run database migrations
-docker compose exec api php artisan migrate
+## API
 
-# (Optional) Run database seeders
-docker compose exec api php artisan db:seed
-```
+All API routes are prefixed with `/api/v1`. Registration and login are public;
+conversation and profile routes require a Sanctum bearer token.
 
----
+### Authentication
 
-## 🔌 AI Providers
+| Method | Endpoint | Authentication |
+| --- | --- | --- |
+| `POST` | `/auth/register` | Public |
+| `POST` | `/auth/login` | Public |
+| `GET` | `/auth/me` | Required |
+| `GET` | `/auth/refresh` | Required |
+| `POST` | `/auth/logout` | Required |
+| `POST` | `/auth/logout-all` | Required |
+| `PATCH` | `/auth/profile` | Required |
 
-The platform is designed to support multiple AI providers, including:
+### Conversations
 
-- Ollama (local LLMs)
-- OpenAI API
-- Compatible OpenAI-like APIs
-- Future support for additional providers
+| Method | Endpoint | Authentication |
+| --- | --- | --- |
+| `GET` | `/conversations` | Required |
+| `POST` | `/conversations` | Required |
+| `GET` | `/conversations/{id}` | Required |
+| `PATCH` | `/conversations/{id}` | Required |
+| `DELETE` | `/conversations/{id}` | Required |
+| `GET` | `/conversations/{conversationId}/messages` | Required |
 
-Example supported local models:
+Conversation listing supports the `per_page`, `order_by`, and `order` query
+parameters. Results are restricted to conversations owned by the authenticated
+user.
 
-- Qwen
-- Gemma
-- Phi
-- TinyLlama
+## Testing
 
----
-
-## 📚 API Documentation
-
-API documentation will be available soon.
-
----
-
-## 🧪 Testing
-
-Run backend tests with:
+Run the backend test suite inside the API container:
 
 ```bash
 docker compose exec api php artisan test
 ```
 
----
-
-## 🤝 Contributing
-
-1. Fork the project
-2. Create a feature branch:
+Run frontend linting and build commands inside the frontend container:
 
 ```bash
-git checkout -b feature/amazing-feature
+docker compose exec web npm run lint
+docker compose exec web npm run build
 ```
 
-3. Commit your changes:
+## License
 
-```bash
-git commit -m 'feat(scope): add some amazing feature'
-```
-
-4. Push to your branch:
-
-```bash
-git push origin feature/amazing-feature
-```
-
-5. Open a pull request
-
----
-
-## 📝 License
-
-This project is licensed under the MIT License. See the `LICENSE` file for details.
+This project is licensed under the MIT License. See the `LICENSE` file for
+details.
