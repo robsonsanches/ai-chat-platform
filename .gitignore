@@ -55,6 +55,8 @@ api/Homestead.json
 api/Homestead.yaml
 api/Thumbs.db
 
+# --- Frontend (Vue.js) ---
+web/node_modules
 
 # --- Docker ---
 docker-compose.override.yml
