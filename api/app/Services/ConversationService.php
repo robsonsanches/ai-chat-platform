@@ -54,6 +54,7 @@ class ConversationService implements ConversationServiceInterface
             : 'asc';
 
         return $this->conversation
+            ->where('user_id', Auth::id())
             ->orderBy($orderBy, $orderDirection)
             ->paginate($perPage);
     }
