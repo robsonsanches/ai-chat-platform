@@ -30,12 +30,6 @@
                       <div v-if="errors.password" class="invalid-feedback">{{ errors.password[0] }}</div>
                   </div>
 
-                  <div class="mb-3">
-                      <label class="form-label">Confirmar senha</label>
-                      <input type="password" class="form-control" :class="{ 'is-invalid': errors.password_confirmation }" placeholder="••••••••" v-model="form.password_confirmation" :disabled="loading">
-                      <div v-if="errors.password_confirmation" class="invalid-feedback">{{ errors.password_confirmation[0] }}</div>
-                  </div>
-
               </div>
 
               <div class="modal-footer border-0">
@@ -63,7 +57,6 @@ export default {
         name: '',
         email: '',
         password: '',
-        password_confirmation: '',
       },
       loading: false,
       error: '',
@@ -85,9 +78,15 @@ export default {
         this.$emit('registered', response.data.data)
         this.resetForm()
         const modalElement = document.getElementById('registerModal')
-        const modal = bootstrap.Modal.getInstance(modalElement)
-        if (modal) {
+        if (modalElement) {
+          const modal = bootstrap.Modal.getOrCreateInstance(modalElement)
           modal.hide()
+
+          document.body.classList.remove('modal-open')
+          const backdrop = document.querySelector('.modal-backdrop')
+          if (backdrop) {
+            backdrop.remove()
+          }
         }
       } catch (err) {
         if (err.response && err.response.data) {
@@ -109,7 +108,6 @@ export default {
       this.form.name = ''
       this.form.email = ''
       this.form.password = ''
-      this.form.password_confirmation = ''
       this.error = ''
       this.errors = {}
     },

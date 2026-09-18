@@ -93,6 +93,15 @@ export default {
         console.error('Erro ao fazer logout:', err)
       }
     },
+    async handleRegistered(data) {
+      if (!data?.access_token) return
+
+      localStorage.setItem('access_token', data.access_token)
+      if (data.user) localStorage.setItem('user', JSON.stringify(data.user))
+
+      await this.handleAuthenticated(true)
+      await this.$refs.sidebar?.loadConversations()
+    },
   },
   async mounted() {
     await this.checkAuth()
@@ -134,5 +143,5 @@ export default {
   <ProfileModal :user-profile="userProfile" @profile-updated="loadUserProfile" />
   <SettingsModal />
   <LoginModal @authenticated="handleAuthenticated" />
-  <RegisterModal />
+  <RegisterModal @registered="handleRegistered" />
 </template>

@@ -2,14 +2,13 @@
 import { APP_NAME } from '../config/app'
 import api from '../services/api'
 import ConversationList from './ConversationList.vue'
-import RegisterModal from './RegisterModal.vue'
 
 export default {
-  components: { ConversationList, RegisterModal },
+  components: { ConversationList },
   props: {
     isAuthenticated: { type: Boolean, default: false },
   },
-  emits: ['start-new-chat', 'logout', 'conversation-selected', 'registered'],
+  emits: ['start-new-chat', 'logout', 'conversation-selected'],
   data() {
     return {
       APP_NAME,
@@ -80,7 +79,6 @@ export default {
       this.selectedConversationId = conversationId
       this.$emit('conversation-selected', conversationId)
     },
-    handleRegistered(data) { this.$emit('registered', data) },
   },
 }
 </script>
@@ -111,7 +109,6 @@ export default {
       </template> -->
       <button v-if="!isAuthenticated" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#loginModal">Entrar</button>
       <button v-if="isAuthenticated" class="btn btn-outline-light btn-sm" @click="handleLogout">Sair</button>
-      <RegisterModal @registered="handleRegistered" />
       <button v-if="!isAuthenticated" class="btn btn-outline-light btn-sm" data-bs-toggle="modal" data-bs-target="#registerModal">Criar conta</button>
     </div>
   </aside>
