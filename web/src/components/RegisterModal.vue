@@ -1,6 +1,6 @@
 <template>
   <!-- Modal Registro -->
-  <div class="modal fade" id="registerModal" tabindex="-1" @hidden.bs.modal="resetForm">
+  <div class="modal fade" id="registerModal" tabindex="-1">
       <div class="modal-dialog modal-dialog-centered">
           <div class="modal-content">
 
@@ -66,6 +66,12 @@ export default {
       errors: {},
     }
   },
+  mounted() {
+    document.getElementById('registerModal')?.addEventListener('hidden.bs.modal', this.handleModalHidden)
+  },
+  beforeUnmount() {
+    document.getElementById('registerModal')?.removeEventListener('hidden.bs.modal', this.handleModalHidden)
+  },
   methods: {
     async handleRegister() {
       this.loading = true
@@ -88,12 +94,6 @@ export default {
         if (modalElement) {
           const modal = bootstrap.Modal.getOrCreateInstance(modalElement)
           modal.hide()
-
-          document.body.classList.remove('modal-open')
-          const backdrop = document.querySelector('.modal-backdrop')
-          if (backdrop) {
-            backdrop.remove()
-          }
         }
       } catch (err) {
         if (err.response && err.response.data) {
@@ -126,6 +126,11 @@ export default {
       this.messageType = ''
       this.messageErrors = []
       this.errors = {}
+    },
+    handleModalHidden() {
+      this.resetForm()
+      document.body.classList.remove('modal-open')
+      document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
     },
   },
 }

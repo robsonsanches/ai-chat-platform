@@ -63,6 +63,12 @@ export default {
       loginLoading: false,
     }
   },
+  mounted() {
+    document.getElementById('loginModal')?.addEventListener('hidden.bs.modal', this.handleModalHidden)
+  },
+  beforeUnmount() {
+    document.getElementById('loginModal')?.removeEventListener('hidden.bs.modal', this.handleModalHidden)
+  },
   methods: {
     async login() {
   this.loginLoading = true
@@ -81,20 +87,13 @@ export default {
       localStorage.setItem('user', JSON.stringify(response.data.data.user))
 
       this.$emit('authenticated', true)
-      this.loginMessageType = 'success'
-      this.loginMessage = response.data.message || 'Login realizado com sucesso!'
       this.$emit('conversations-loaded')
+      this.resetForm()
 
       const loginModalEl = document.getElementById('loginModal')
       if (loginModalEl) {
         const loginModal = Modal.getOrCreateInstance(loginModalEl)
         loginModal.hide()
-
-        document.body.classList.remove('modal-open')
-        const backdrop = document.querySelector('.modal-backdrop')
-        if (backdrop) {
-          backdrop.remove()
-        }
       }
 
       console.log('Resposta da autenticação:', response.data)
@@ -134,6 +133,18 @@ export default {
   } finally {
     this.loginLoading = false
   }
+    },
+    resetForm() {
+      this.loginForm.email = ''
+      this.loginForm.password = ''
+      this.loginMessage = ''
+      this.loginMessageType = ''
+      this.loginErrors = []
+    },
+    handleModalHidden() {
+      this.resetForm()
+      document.body.classList.remove('modal-open')
+      document.querySelectorAll('.modal-backdrop').forEach((backdrop) => backdrop.remove())
     },
   },
 }
