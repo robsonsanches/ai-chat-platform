@@ -10,29 +10,30 @@
               </div>
 
               <div class="modal-body">
-                  <div v-if="error" class="alert alert-danger" role="alert">{{ error }}</div>
-
                   <div class="mb-3">
                       <label class="form-label">Nome</label>
-                      <input type="text" class="form-control" :class="{ 'is-invalid': errors.name }" placeholder="Seu nome" v-model="form.name" :disabled="loading">
-                      <div v-if="errors.name" class="invalid-feedback">{{ errors.name[0] }}</div>
+                      <input type="text" class="form-control" placeholder="Seu nome" v-model="form.name" :disabled="loading">
                   </div>
 
                   <div class="mb-3">
                       <label class="form-label">E-mail</label>
-                      <input type="email" class="form-control" :class="{ 'is-invalid': errors.email }" placeholder="seu@email.com" v-model="form.email" :disabled="loading">
-                      <div v-if="errors.email" class="invalid-feedback">{{ errors.email[0] }}</div>
+                      <input type="email" class="form-control" placeholder="seu@email.com" v-model="form.email" :disabled="loading">
                   </div>
 
                   <div class="mb-3">
                       <label class="form-label">Senha</label>
-                      <input type="password" class="form-control" :class="{ 'is-invalid': errors.password }" placeholder="••••••••" v-model="form.password" :disabled="loading">
-                      <div v-if="errors.password" class="invalid-feedback">{{ errors.password[0] }}</div>
+                      <input type="password" class="form-control" placeholder="••••••••" v-model="form.password" :disabled="loading">
                   </div>
 
               </div>
 
               <div class="modal-footer border-0">
+                  <div v-if="message" class="alert w-100 mb-3" :class="messageType === 'success' ? 'alert-success' : 'alert-danger'" role="alert">
+                      <div>{{ message }}</div>
+                      <ul v-if="messageErrors.length" class="mb-0 ps-3">
+                          <li v-for="(errorItem, index) in messageErrors" :key="index">{{ errorItem }}</li>
+                      </ul>
+                  </div>
                   <button class="btn btn-secondary" data-bs-dismiss="modal" :disabled="loading">Cancelar</button>
                   <button class="btn btn-success" @click="handleRegister" :disabled="loading">
                       <span v-if="loading" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
@@ -59,14 +60,18 @@ export default {
         password: '',
       },
       loading: false,
-      error: '',
+      message: '',
+      messageType: '',
+      messageErrors: [],
       errors: {},
     }
   },
   methods: {
     async handleRegister() {
       this.loading = true
-      this.error = ''
+      this.message = ''
+      this.messageType = ''
+      this.messageErrors = []
       this.errors = {}
 
       try {
@@ -75,6 +80,8 @@ export default {
           email: this.form.email,
           password: this.form.password,
         })
+        this.messageType = 'success'
+        this.message = response.data.message || 'Cadastro realizado com sucesso!'
         this.$emit('registered', response.data.data)
         this.resetForm()
         const modalElement = document.getElementById('registerModal')
@@ -92,12 +99,19 @@ export default {
         if (err.response && err.response.data) {
           if (err.response.data.code === 'VALIDATION_ERROR') {
             this.errors = err.response.data.errors
-            this.error = err.response.data.message
+            this.messageType = 'error'
+            this.message = err.response.data.message || 'Erro de validação'
+            this.messageErrors = Object.values(this.errors).flatMap((messages) => {
+              const list = Array.isArray(messages) ? messages : [messages]
+              return list.map((message) => `${message}`)
+            })
           } else {
-            this.error = err.response.data.message || 'Ocorreu um erro ao tentar registrar.'
+            this.messageType = 'error'
+            this.message = err.response.data.message || 'Ocorreu um erro ao tentar registrar.'
           }
         } else {
-          this.error = 'Ocorreu um erro inesperado. Por favor, tente novamente.'
+          this.messageType = 'error'
+          this.message = 'Ocorreu um erro inesperado. Por favor, tente novamente.'
         }
         console.error(err)
       } finally {
@@ -108,7 +122,9 @@ export default {
       this.form.name = ''
       this.form.email = ''
       this.form.password = ''
-      this.error = ''
+      this.message = ''
+      this.messageType = ''
+      this.messageErrors = []
       this.errors = {}
     },
   },
@@ -116,5 +132,17 @@ export default {
 </script>
 
 <style scoped>
+.alert-success {
+  background-color: #00c853;
+  border-color: #00a844;
+  color: #ffffff;
+}
+
+.alert-danger {
+  background-color: #ff1744;
+  border-color: #d5002f;
+  color: #ffffff;
+}
+
 /* Estilos do modal de registro */
 </style>

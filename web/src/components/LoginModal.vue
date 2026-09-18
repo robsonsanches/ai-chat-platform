@@ -20,16 +20,6 @@
                       <input v-model="loginForm.password" type="password" class="form-control" placeholder="••••••••">
                   </div>
 
-                  <div v-if="loginMessage" class="small" :class="loginMessageType === 'success' ? 'text-success' : 'text-danger'">
-                      <div v-if="loginMessageType === 'success'">{{ loginMessage }}</div>
-                      <div v-else>
-                          <div class="fw-semibold mb-1">{{ loginMessage }}</div>
-                          <ul v-if="loginErrors.length" class="ps-3">
-                              <li v-for="(errorItem, index) in loginErrors" :key="index">{{ errorItem }}</li>
-                          </ul>
-                      </div>
-                  </div>
-
                   <!-- <div class="form-check">
                       <input class="form-check-input" type="checkbox" checked>
                       <label class="form-check-label">Lembrar-me</label>
@@ -38,6 +28,12 @@
               </div>
 
               <div class="modal-footer border-0">
+                  <div v-if="loginMessage" class="alert w-100 mb-3" :class="loginMessageType === 'success' ? 'alert-success' : 'alert-danger'" role="alert">
+                      <div>{{ loginMessage }}</div>
+                      <ul v-if="loginErrors.length" class="mb-0 ps-3">
+                          <li v-for="(errorItem, index) in loginErrors" :key="index">{{ errorItem }}</li>
+                      </ul>
+                  </div>
                   <button class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
                   <button class="btn btn-success" :disabled="loginLoading" @click="login">
                       {{ loginLoading ? 'Entrando...' : 'Entrar' }}
@@ -144,5 +140,17 @@ export default {
 </script>
 
 <style scoped>
+.alert-success {
+  background-color: #00c853;
+  border-color: #00a844;
+  color: #ffffff;
+}
+
+.alert-danger {
+  background-color: #ff1744;
+  border-color: #d5002f;
+  color: #ffffff;
+}
+
 /* Estilos do modal de login */
 </style>
