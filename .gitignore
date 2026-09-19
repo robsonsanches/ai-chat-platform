@@ -57,6 +57,8 @@ api/Thumbs.db
 
 # --- Frontend (Vue.js) ---
 web/node_modules
+web/dist/
+web/.eslintcache
 
 # --- Docker ---
 docker-compose.override.yml

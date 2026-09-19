@@ -61,6 +61,15 @@ PHP, Composer, or Node.js installation is required to run the stack.
    docker compose up -d --build
    ```
 
+   Before starting the frontend, create its environment file:
+
+   ```bash
+   cp web/.env.example web/.env
+   ```
+
+   Adjust `VITE_API_URL` in `web/.env` when the API is not available at
+   `http://localhost:8000/api/v1`. Do not put provider API keys in this file.
+
 4. Install backend dependencies, generate the application key, and run the
    migrations:
 
@@ -131,6 +140,10 @@ Run frontend linting and build commands inside the frontend container:
 docker compose exec web npm run lint
 docker compose exec web npm run build
 ```
+
+For production, `npm run build` generates `web/dist/`, which should be served
+by a web server or CDN. The generated directory is intentionally ignored by
+Git and should not be committed.
 
 ## License
 

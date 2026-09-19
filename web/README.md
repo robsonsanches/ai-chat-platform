@@ -22,8 +22,17 @@ See [Vite Configuration Reference](https://vite.dev/config/).
 ## Project Setup
 
 ```sh
-npm install
+npm ci
+cp .env.example .env
 ```
+
+`VITE_API_URL` configures the API base URL. Vite exposes variables prefixed
+with `VITE_` to the browser, so do not put secrets in this file. For a
+same-origin production deployment, set it to `/api/v1`.
+
+The Vue DevTools Vite plugin is disabled by default. Set
+`VITE_ENABLE_VUE_DEVTOOLS=true` in `.env` only during development when it is
+needed.
 
 ### Compile and Hot-Reload for Development
 
