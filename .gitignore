@@ -25,6 +25,7 @@ logs/
 
 # --- Dados persistentes ---
 data/mysql/
+api/ai_chat_db
 
 # --- Backend (Laravel) ---
 api/*.log
@@ -54,6 +55,10 @@ api/Homestead.json
 api/Homestead.yaml
 api/Thumbs.db
 
+# --- Frontend (Vue.js) ---
+web/node_modules
+web/dist/
+web/.eslintcache
 
 # --- Docker ---
 docker-compose.override.yml

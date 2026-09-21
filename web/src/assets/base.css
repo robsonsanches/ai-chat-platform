@@ -1,0 +1,17 @@
+:root {
+    --bg-primary: #202123;
+    --bg-secondary: #2b2d31;
+    --bg-tertiary: #343541;
+    --border-color: #444654;
+    --text-primary: #ececf1;
+    --text-secondary: #b4b7c5;
+    --accent: #10a37f;
+}
+
+body {
+    margin: 0;
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: Inter, system-ui, sans-serif;
+    overflow: hidden;
+}
